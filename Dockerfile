@@ -11,4 +11,4 @@ RUN python3 -m pip install -r requirements.txt
 
 EXPOSE 8000
 
-CMD ["fastapi", "dev", "image_uploader.py"]
+CMD ["fastapi", "run", "image_uploader.py"]
