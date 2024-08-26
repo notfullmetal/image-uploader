@@ -2,7 +2,7 @@ name: Image Uploader
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
+  IMAGE_NAME: ${{ github.repository }}
 on:
   push:
     branches: ["main"]
@@ -29,6 +29,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v2
+        with:
+          images: ghcr.io/${{ env.IMAGE_NAME }}
 
       - name: Build & Push image
         run: |
