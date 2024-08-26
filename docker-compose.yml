@@ -1,6 +1,6 @@
 services:
   image_uploader:
-    image: notfullmetal/imageuploader:v1
+    image: notfullmetal/imageuploader:latest
     command: fastapi run image_uploader.py
     restart: on-failure
     ports:
