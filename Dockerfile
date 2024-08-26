@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install \
 --no-install-recommends \
 -y curl build-essential
 
-RUN pyhton3 -m pip install -r requirements.txt
+RUN python3 -m pip install -r requirements.txt
 
 EXPOSE 8000
 
