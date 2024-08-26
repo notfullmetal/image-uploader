@@ -33,7 +33,7 @@ async def upload_image_to_catbox(file_path: str) -> str:
             'status_code': response.status_code
         }
 
-        return JSONResponse(content=response_json)
+        return JSONResponse(content={"url": response.text.strip()})
     
 async def upload_image_to_graph(file_path: str) -> str:
     file_extension = pathlib.Path(file_path).suffix.lower()
@@ -80,7 +80,7 @@ async def upload(file: UploadFile, destination: str = Form(...)):
         if os.path.exists(file.filename):
             os.remove(file.filename)
 
-        return {'message': 'File uploaded successfully', 'url': url}
+        return {'Status': 'Success', 'url': url}
     
     except Exception as e:
         raise HTTPException(
@@ -89,19 +89,6 @@ async def upload(file: UploadFile, destination: str = Form(...)):
         )
     finally:
         await file.close()
-
-    
-# @app.get('/')
-# async def main():
-#     content = '''
-#     <body>
-#     <form action='/upload' enctype='multipart/form-data' method='post'>
-#     <input name='file' type='file'>
-#     <input type='submit'>
-#     </form>
-#     </body>
-#     '''
-#     return HTMLResponse(content=content)
 
 @app.get('/')
 async def main():
@@ -151,17 +138,74 @@ async def main():
         </style>
     </head>
     <body>
-        <div class="upload-container">
-            <h1>Upload Your File</h1>
-            <form action='/upload' enctype='multipart/form-data' method='post'>
-                <input name='file' type='file' required>
-                <div>
-                    <button type='submit' name='destination' value='catbox'>Upload to Catbox</button>
-                    <button type='submit' name='destination' value='graph'>Upload to Graph</button>
+    <div class="upload-container">
+        <h1>Upload Your File</h1>
+        <form action='/upload' enctype='multipart/form-data' method='post'>
+            <input name='file' type='file' required>
+            <div class="dropdown">
+                <button class="dropbtn">Upload</button>
+                <div class="dropdown-content">
+                    <button type="submit" name="destination" value="catbox">Upload to Catbox</button>
+                    <button type="submit" name="destination" value="graph">Upload to Graph</button>
                 </div>
-            </form>
-        </div>
-    </body>
-    </html>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .upload-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content button {
+            background-color: white;
+            color: black;
+            padding: 12px 16px;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown:hover .dropbtn {
+            background-color: #0056b3;
+        }
+    </style>
+    
+</body>
+</html>
     '''
     return HTMLResponse(content=content)
