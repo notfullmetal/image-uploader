@@ -1,0 +1,7 @@
+services:
+  image_uploader:
+    image: notfullmetal/imageuploader:v1
+    command: fastapi dev image_uploader.py
+    restart: on-failure
+    ports:
+    -  "8000:8000"

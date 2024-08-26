@@ -1,0 +1,28 @@
+name: Image Uploader
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to docker hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERUN }}
+          password: ${{ secrets.DOCKERPW }}
+
+      - name: Build & Push image
+        run: docker buildx build --platform linux/amd64 -t notfullmetal/imageuploader:v1 . --push
+
+
+
+
