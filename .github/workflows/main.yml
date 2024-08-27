@@ -38,13 +38,18 @@ jobs:
         with:
           images: ghcr.io/${{ env.IMAGE_NAME }}
 
+      - name: Set short SHA
+        id: vars
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+  
+
       - name: Build & Push image
         run: |
           docker buildx build --platform linux/amd64 \
-          -t notfullmetal/imageuploader:${{ github.sha }} \
+          -t notfullmetal/imageuploader:${{ env.SHORT_SHA }} \
           -t notfullmetal/imageuploader:${{ github.ref_name }} \
           -t notfullmetal/imageuploader:latest \
-          -t $GH_IMAGE_REPOSITORY:${{ github.sha }} \
+          -t $GH_IMAGE_REPOSITORY:${{ env.SHORT_SHA }} \
           -t $GH_IMAGE_REPOSITORY:${{ github.ref_name }} \
           -t $GH_IMAGE_REPOSITORY:latest \
           . --push
