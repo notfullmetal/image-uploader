@@ -8,8 +8,8 @@ import pathlib
 app = FastAPI()
 
 
-async def upload_image_to_catbox(file_path: str) -> str:
-    file_extension = pathlib.Path(file_path).suffix.lower()
+async def upload_image_to_catbox(file_content: bytes, filename: str) -> str:
+    file_extension = pathlib.Path(filename).suffix.lower()
     if file_extension in ['.jpeg', '.jpg']:
         mime_type = 'image/jpeg'
     elif file_extension == '.png':
@@ -20,23 +20,27 @@ async def upload_image_to_catbox(file_path: str) -> str:
             detail='Unsupported file type'
         )
     
-    async with aiofiles.open(file_path, 'rb') as image_file:
-        contents = await image_file.read()
-        files = {'fileToUpload': ('filename', contents, mime_type)}
-        data = {
-            'reqtype': 'fileupload'
-            }
-        response = requests.post('https://catbox.moe/user/api.php', files=files, data=data)
+    # async with aiofiles.open(file_path, 'rb') as image_file:
+    #     contents = await image_file.read()
+    #     files = {'fileToUpload': ('filename', contents, mime_type)}
+    #     data = {
+    #         'reqtype': 'fileupload'
+    #         }
 
-        response_json = {
-            'content': response.text,
-            'status_code': response.status_code
-        }
+    files = {'fileToUpload': (filename, file_content, mime_type)}
+    data = {
+        'reqtype': 'fileupload'
+    }
+    response = requests.post('https://catbox.moe/user/api.php', files=files, data=data)
 
-        return JSONResponse(content={"url": response.text.strip()})
+    response_json = {
+        'content': response.text
+    }
+
+    return JSONResponse(content=response_json)
     
-async def upload_image_to_graph(file_path: str) -> str:
-    file_extension = pathlib.Path(file_path).suffix.lower()
+async def upload_image_to_graph(file_content: bytes, filename: str) -> str:
+    file_extension = pathlib.Path(filename).suffix.lower()
     if file_extension in ['.jpeg', '.jpg']:
         mime_type = 'image/jpeg'
     elif file_extension == '.png':
@@ -47,17 +51,19 @@ async def upload_image_to_graph(file_path: str) -> str:
             detail='Unsupported file type'
         )
     
-    async with aiofiles.open(file_path, 'rb') as image_file:
-        contents = await image_file.read()
-        files = {'file': ('filename', contents, mime_type)}
-        data = {}
-        response = requests.post('https://graph.org/upload', data=data, files=files)
+    # async with aiofiles.open(file_path, 'rb') as image_file:
+    #     contents = await image_file.read()
+    #     files = {'file': ('filename', contents, mime_type)}
+    #     data = {}
 
-        response_json = {
-            'content': response.text
-        }
+    files = {'file': (filename, file_content, mime_type)}
+    response = requests.post('https://graph.org/upload', files=files)
 
-        return JSONResponse(content=response_json)
+    response_json = {
+        'content': response.text
+    }
+
+    return JSONResponse(content=response_json)
 
 
 @app.post('/upload')
