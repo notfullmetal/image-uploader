@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, UploadFile, HTTPException, status, Form
 from fastapi.responses import HTMLResponse, JSONResponse
+import uvicorn
 import aiofiles
 import requests
 import os
@@ -209,3 +210,7 @@ async def main():
 </html>
     '''
     return HTMLResponse(content=content)
+
+if __name__ == "__main__":
+    port = int(os.getenv('PORT', 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
