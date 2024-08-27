@@ -44,9 +44,9 @@ jobs:
           -t notfullmetal/imageuploader:${{ github.sha }} \
           -t notfullmetal/imageuploader:${{ github.ref_name }} \
           -t notfullmetal/imageuploader:latest \
-          -t ${{ GH_IMAGE_REPOSITORY }}:${{ github.sha }} \
-          -t ${{ GH_IMAGE_REPOSITORY }}:${{ github.ref_name }} \
-          -t ${{ GH_IMAGE_REPOSITORY }}:latest \
+          -t $GH_IMAGE_REPOSITORY:${{ github.sha }} \
+          -t $GH_IMAGE_REPOSITORY:${{ github.ref_name }} \
+          -t $GH_IMAGE_REPOSITORY:latest \
           . --push
 
       - name: Install Vercel CLI
