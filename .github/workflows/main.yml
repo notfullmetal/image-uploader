@@ -2,7 +2,9 @@ name: Image Uploader
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  GH_IMAGE_REPOSITORY: ghcr.io/${{ github.repository }}
 on:
   push:
     branches: ["main"]
@@ -28,7 +30,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Docker metadata
         id: meta
@@ -42,9 +44,9 @@ jobs:
           -t notfullmetal/imageuploader:${{ github.sha }} \
           -t notfullmetal/imageuploader:${{ github.ref_name }} \
           -t notfullmetal/imageuploader:latest \
-          -t ghcr.io/notfullmetal/imageuploader:${{ github.sha }} \
-          -t ghcr.io/notfullmetal/imageuploader:${{ github.ref_name }} \
-          -t ghcr.io/notfullmetal/imageuploader:latest \
+          -t ${{ GH_IMAGE_REPOSITORY }}:${{ github.sha }} \
+          -t ${{ GH_IMAGE_REPOSITORY }}:${{ github.ref_name }} \
+          -t ${{ GH_IMAGE_REPOSITORY }}:latest \
           . --push
 
       - name: Install Vercel CLI
