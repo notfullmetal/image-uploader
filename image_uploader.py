@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Request, UploadFile, HTTPException, status, Form
 from fastapi.responses import HTMLResponse, JSONResponse
-import uvicorn
 import aiofiles
 import requests
 import os
@@ -64,14 +63,16 @@ async def upload_image_to_graph(file_path: str) -> str:
 @app.post('/upload')
 async def upload(file: UploadFile, destination: str = Form(...)):
     try:
-        async with aiofiles.open(file.filename, 'wb') as f:
-            contents = await file.read()
-            await f.write(contents)
+        # async with aiofiles.open(file.filename, 'wb') as f:
+        #     contents = await file.read()
+        #     await f.write(contents)
+
+        file_content = await file.read()
 
         if destination =='catbox':
-            url = await upload_image_to_catbox(file.filename)
+            url = await upload_image_to_catbox(file_content, file.filename)
         elif destination =='graph':
-            url = await upload_image_to_graph(file.filename)
+            url = await upload_image_to_graph(file_content, file.filename)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -210,7 +211,3 @@ async def main():
 </html>
     '''
     return HTMLResponse(content=content)
-
-if __name__ == "__main__":
-    port = int(os.getenv('PORT', 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
