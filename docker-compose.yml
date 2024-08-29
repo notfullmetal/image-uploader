@@ -18,7 +18,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - app
+      - image_uploader
     networks:
       - app-network
 
