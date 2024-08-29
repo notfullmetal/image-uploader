@@ -9,7 +9,7 @@ services:
       - app-network
 
   caddy:
-    image: caddy:laest
+    image: caddy:latest
     restart: unless-stopped
     ports:
       - 80:80
