@@ -45,7 +45,7 @@ jobs:
 
       - name: Build & Push image
         run: |
-          docker buildx build --platform linux/amd64 \
+          docker buildx build --platform linux/arm64,linux/amd64 \
           -t notfullmetal/imageuploader:${{ env.SHORT_SHA }} \
           -t notfullmetal/imageuploader:${{ github.ref_name }} \
           -t notfullmetal/imageuploader:latest \
