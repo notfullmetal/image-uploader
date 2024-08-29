@@ -5,3 +5,27 @@ services:
     restart: on-failure
     ports:
     -  "8000:8000"
+    networks:
+      - app-network
+
+  caddy:
+    image: caddy:laest
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
