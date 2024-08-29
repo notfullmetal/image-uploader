@@ -17,6 +17,7 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile
     depends_on:
       - image_uploader
     networks:
