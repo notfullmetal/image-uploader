@@ -4,7 +4,7 @@ services:
     command: fastapi run image_uploader.py
     restart: on-failure
     ports:
-    -  "8000:8000"
+    -  "80:8000"
     networks:
       - app-network
 
