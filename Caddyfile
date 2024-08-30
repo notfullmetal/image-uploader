@@ -1,3 +1,3 @@
-:80 {
+image.alc.us.kg {
     reverse_proxy image_uploader:8000
 }
