@@ -12,8 +12,8 @@ services:
     image: caddy:latest
     restart: unless-stopped
     ports:
-      - 81:80
-      - 444:443
+      - 80:80
+      - 443:443
     volumes:
       - caddy_data:/data
       - caddy_config:/config
