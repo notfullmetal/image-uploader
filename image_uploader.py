@@ -4,42 +4,48 @@ import aiofiles
 import requests
 import os
 import pathlib
+import json
 
 app = FastAPI()
 
 
-async def upload_image_to_catbox(file_content: bytes, filename: str) -> str:
-    file_extension = pathlib.Path(filename).suffix.lower()
-    if file_extension in ['.jpeg', '.jpg']:
-        mime_type = 'image/jpeg'
-    elif file_extension == '.png':
-        mime_type = 'image/png'
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Unsupported file type'
-        )
+def upload_image_to_catbox(file_content: bytes, filename: str) -> str:
+    # file_extension = pathlib.Path(filename).suffix.lower()
+    # if file_extension in ['.jpeg', '.jpg']:
+    #     mime_type = 'image/jpeg'
+    # elif file_extension == '.png':
+    #     mime_type = 'image/png'
+    # else:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail='Unsupported file type'
+    #     )
     
-    # async with aiofiles.open(file_path, 'rb') as image_file:
+    # with open(filename, 'rb') as image_file:
     #     contents = await image_file.read()
-    #     files = {'fileToUpload': ('filename', contents, mime_type)}
+    #     files = {'fileToUpload': (image_file, file_content)}
     #     data = {
     #         'reqtype': 'fileupload'
     #         }
 
-    files = {'fileToUpload': (filename, file_content, mime_type)}
+    files = {'fileToUpload': (filename, file_content)}
     data = {
         'reqtype': 'fileupload'
     }
     response = requests.post('https://catbox.moe/user/api.php', files=files, data=data)
 
-    response_json = {
-        'content': response.text
-    }
+    # response_json = {
+    #     'content': response.text
+    # }
+    # response_filter= json.dumps(response_json)
 
-    return JSONResponse(content=response_json)
+    # return (response_filter)
+
+    #return JSONResponse(content=response_json)
+
+    return response.text.strip()
     
-async def upload_image_to_graph(file_content: bytes, filename: str) -> str:
+def upload_image_to_graph(file_content: bytes, filename: str) -> str:
     file_extension = pathlib.Path(filename).suffix.lower()
     if file_extension in ['.jpeg', '.jpg']:
         mime_type = 'image/jpeg'
@@ -59,26 +65,30 @@ async def upload_image_to_graph(file_content: bytes, filename: str) -> str:
     files = {'file': (filename, file_content, mime_type)}
     response = requests.post('https://graph.org/upload', files=files)
 
-    response_json = {
-        'content': response.text
-    }
+    # response_json = {
+    #     'content': response.text
+    # }
 
-    return JSONResponse(content=response_json)
+    #return JSONResponse(content=response_json)
 
+    response_json = response.json()
+    file_path = "https://graph.org" + response_json[0]['src']
+
+    return file_path
 
 @app.post('/upload')
-async def upload(file: UploadFile, destination: str = Form(...)):
+def upload(file: UploadFile, destination: str = Form(...)):
     try:
-        # async with aiofiles.open(file.filename, 'wb') as f:
-        #     contents = await file.read()
-        #     await f.write(contents)
+        # with open(file.filename, 'wb') as f:
+        #     contents = file.read()
+        #     f.write(contents)
 
-        file_content = await file.read()
+        file_content = file.file.read()
 
         if destination =='catbox':
-            url = await upload_image_to_catbox(file_content, file.filename)
+            url = upload_image_to_catbox(file_content, file.filename)
         elif destination =='graph':
-            url = await upload_image_to_graph(file_content, file.filename)
+            url = upload_image_to_graph(file_content, file.filename)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -88,7 +98,7 @@ async def upload(file: UploadFile, destination: str = Form(...)):
         if os.path.exists(file.filename):
             os.remove(file.filename)
 
-        return {'Status': 'Success', 'url': url}
+        return {'status': 'Success', 'url': url}
     
     except Exception as e:
         raise HTTPException(
@@ -96,10 +106,10 @@ async def upload(file: UploadFile, destination: str = Form(...)):
             detail=f'There was an error: {str(e)}'
         )
     finally:
-        await file.close()
+        file.file.close()
 
 @app.get('/')
-async def main():
+def main():
     content = '''
     <!DOCTYPE html>
     <html lang="en">
