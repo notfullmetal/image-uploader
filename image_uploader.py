@@ -190,13 +190,14 @@ def main():
             <button class="dropbtn" style="pointer-events: none; cursor: default;">Upload</button>
 
             <div class="dropdown-content">
-                <button type="submit" name="destination" value="catbox">Upload to Catbox</button>
-                <button type="submit" name="destination" value="imgur">Upload to Imgur</button>
+                <button type="button" name="destination" value="catbox" onclick="submitForm('catbox')">Upload to Catbox</button>
+                <button type="button" name="destination" value="imgur" onclick="submitForm('imgur')">Upload to Imgur</button>
             </div>
         </div>
 
         <div class="error" id="errorMessage"></div>
     </form>
+    <div id="uploadedUrl"></div>
     </div>
 
     <style>
@@ -253,21 +254,44 @@ def main():
     </style>
 
     <script>
-    document.getElementById('uploadForm').addEventListener('submit', function(event) {
+    function submitForm(destination) {
         var fileInput = document.getElementById('fileInput');
         var errorMessage = document.getElementById('errorMessage');
-        var maxSize = 4 * 1024 * 1024; // 4MB
+        var uploadedUrl = document.getElementById('uploadedUrl');
+        var maxSize = 4 * 1024 * 1024;
 
         if (fileInput.files.length > 0) {
             var file = fileInput.files[0];
             if (file.size > maxSize) {
                 errorMessage.textContent = 'File size exceeds 4MB limit.';
-                event.preventDefault(); // Prevent form submission
-            } else {
-                errorMessage.textContent = ''; // Clear any previous error message
+                return;
             }
+
+            errorMessage.textContent = '';
+
+            var formData = new FormData();
+            formData.append("file", file);
+            formData.append("destination", destination);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "Success") {
+                    uploadedUrl.innerHTML = '<p>Uploaded successfully! URL: <a href="' + data.url + '" target="_blank">' + data.url + '</a></p>';
+                } else {
+                    uploadedUrl.innerHTML = '<p>Error: ' + data.detail + '</p>';
+                }
+            })
+            .catch(error => {
+                uploadedUrl.innerHTML = '<p>Error: ' + error + '</p>';
+            });
+        } else {
+            errorMessage.textContent = 'Please select a file to upload.';
         }
-    });
+    }
     </script>
     
 </body>
