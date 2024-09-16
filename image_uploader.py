@@ -5,9 +5,11 @@ import requests
 import os
 import pathlib
 import json
+from dotenv import load_dotenv
 
 app = FastAPI()
 
+load_dotenv()
 
 def upload_image_to_catbox(file_content: bytes, filename: str) -> str:
     # file_extension = pathlib.Path(filename).suffix.lower()
@@ -45,36 +47,52 @@ def upload_image_to_catbox(file_content: bytes, filename: str) -> str:
 
     return response.text.strip()
     
-def upload_image_to_graph(file_content: bytes, filename: str) -> str:
-    file_extension = pathlib.Path(filename).suffix.lower()
-    if file_extension in ['.jpeg', '.jpg']:
-        mime_type = 'image/jpeg'
-    elif file_extension == '.png':
-        mime_type = 'image/png'
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Unsupported file type'
-        )
+# def upload_image_to_graph(file_content: bytes, filename: str) -> str:
+#     file_extension = pathlib.Path(filename).suffix.lower()
+#     if file_extension in ['.jpeg', '.jpg']:
+#         mime_type = 'image/jpeg'
+#     elif file_extension == '.png':
+#         mime_type = 'image/png'
+#     else:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail='Unsupported file type'
+#         )
     
-    # async with aiofiles.open(file_path, 'rb') as image_file:
-    #     contents = await image_file.read()
-    #     files = {'file': ('filename', contents, mime_type)}
-    #     data = {}
+#     # async with aiofiles.open(file_path, 'rb') as image_file:
+#     #     contents = await image_file.read()
+#     #     files = {'file': ('filename', contents, mime_type)}
+#     #     data = {}
 
-    files = {'file': (filename, file_content, mime_type)}
-    response = requests.post('https://graph.org/upload', files=files)
+#     files = {'file': (filename, file_content, mime_type)}
+#     response = requests.post('https://graph.org/upload', files=files)
 
-    # response_json = {
-    #     'content': response.text
-    # }
+#     # response_json = {
+#     #     'content': response.text
+#     # }
 
-    #return JSONResponse(content=response_json)
+#     #return JSONResponse(content=response_json)
 
-    response_json = response.json()
-    file_path = "https://graph.org" + response_json[0]['src']
+#     response_json = response.json()
+#     file_path = "https://graph.org" + response_json[0]['src']
 
-    return file_path
+#     return file_path
+
+def upload_image_to_imgur(file_content: bytes, filename: str, client_id: str) -> str:
+    client_id = '546c25a59c58ad7'
+    url = 'https://api.imgur.com/3/image'
+    headers = {
+        'Authorization': f'Client-ID {client_id}'
+    }
+    files = {'image': file_content}
+    response = requests.post(url, headers=headers, files=files)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Get the link to the uploaded image
+        return response.json()['data']['link']
+    else:
+        raise Exception(f"Failed to upload image: {response.status_code} {response.text}")
 
 @app.post('/upload')
 def upload(file: UploadFile, destination: str = Form(...)):
@@ -83,12 +101,19 @@ def upload(file: UploadFile, destination: str = Form(...)):
         #     contents = file.read()
         #     f.write(contents)
 
+        imgur_client_id = os.getenv('IMGUR_CLIENT_ID')
+
         file_content = file.file.read()
 
         if destination =='catbox':
             url = upload_image_to_catbox(file_content, file.filename)
-        elif destination =='graph':
-            url = upload_image_to_graph(file_content, file.filename)
+        elif destination =='imgur':
+            if not imgur_client_id:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail='Imgur client ID is missing'
+                )
+            url = upload_image_to_imgur(file_content, file.filename, imgur_client_id)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -157,17 +182,21 @@ def main():
     </head>
     <body>
     <div class="upload-container">
-        <h1>Upload Your File</h1>
-        <form action='/upload' enctype='multipart/form-data' method='post'>
-            <input name='file' type='file' required>
-            <div class="dropdown">
-                <button class="dropbtn">Upload</button>
-                <div class="dropdown-content">
-                    <button type="submit" name="destination" value="catbox">Upload to Catbox</button>
-                    <button type="submit" name="destination" value="graph">Upload to Graph</button>
-                </div>
+    <h1>Upload Your File</h1>
+    <form id="uploadForm" action='/upload' enctype='multipart/form-data' method='post'>
+        <input id="fileInput" name='file' type='file' required>
+        
+        <div class="dropdown">
+            <button class="dropbtn" style="pointer-events: none; cursor: default;">Upload</button>
+
+            <div class="dropdown-content">
+                <button type="submit" name="destination" value="catbox">Upload to Catbox</button>
+                <button type="submit" name="destination" value="imgur">Upload to Imgur</button>
             </div>
-        </form>
+        </div>
+
+        <div class="error" id="errorMessage"></div>
+    </form>
     </div>
 
     <style>
@@ -222,6 +251,24 @@ def main():
             background-color: #0056b3;
         }
     </style>
+
+    <script>
+    document.getElementById('uploadForm').addEventListener('submit', function(event) {
+        var fileInput = document.getElementById('fileInput');
+        var errorMessage = document.getElementById('errorMessage');
+        var maxSize = 4 * 1024 * 1024; // 4MB
+
+        if (fileInput.files.length > 0) {
+            var file = fileInput.files[0];
+            if (file.size > maxSize) {
+                errorMessage.textContent = 'File size exceeds 4MB limit.';
+                event.preventDefault(); // Prevent form submission
+            } else {
+                errorMessage.textContent = ''; // Clear any previous error message
+            }
+        }
+    });
+    </script>
     
 </body>
 </html>
