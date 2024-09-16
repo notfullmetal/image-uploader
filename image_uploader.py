@@ -280,7 +280,14 @@ def main():
             .then(response => response.json())
             .then(data => {
                 if (data.status === "Success") {
-                    uploadedUrl.innerHTML = '<p>Uploaded successfully! URL: <a href="' + data.url + '" target="_blank">' + data.url + '</a></p>';
+                    uploadedUrl.innerHTML = '<p>Uploaded successfully! URL: <a id="copyUrl" href="' + data.url + '" target="_blank">' + data.url + '</a></p>';
+                    const copyUrlElement = document.getElementById('copyUrl');
+                    if (copyUrlElement) {
+                        copyUrlElement.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            copyToClipboard(data.url); // Call the function to copy the URL
+                        });
+                    }
                 } else {
                     uploadedUrl.innerHTML = '<p>Error: ' + data.detail + '</p>';
                 }
@@ -291,6 +298,14 @@ def main():
         } else {
             errorMessage.textContent = 'Please select a file to upload.';
         }
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            alert('URL copied to clipboard!');
+        }, function(err) {
+            alert('Failed to copy URL: ', err);
+        });
     }
     </script>
     
